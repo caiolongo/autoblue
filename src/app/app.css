@@ -1,0 +1,1363 @@
+/* Barra superior */
+.topbar {
+  grid-area: top;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px 0 14px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--text-strong);
+  min-width: 0;
+}
+
+.brand .project {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 400;
+  font-size: 12px;
+  color: var(--muted);
+  margin-left: 6px;
+  white-space: nowrap;
+}
+
+.brand .dirty {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--brand);
+}
+
+.topbar-right {
+  display: flex;
+  gap: 6px;
+}
+
+/* Biblioteca */
+.library section + section {
+  margin-top: 16px;
+}
+
+.library-group {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 4px;
+}
+
+.library .phase {
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.library ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.library-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 4px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--panel-radius-inner);
+  background: none;
+  color: var(--text-2);
+  text-align: left;
+  cursor: grab;
+}
+
+.library-item:hover {
+  background: var(--bg);
+  border-color: var(--line);
+}
+
+.library-item[aria-pressed="true"] {
+  border-color: var(--brand);
+  color: var(--text-strong);
+}
+
+.library .preview {
+  width: 44px;
+  height: 28px;
+  flex: none;
+}
+
+.library .upcoming {
+  padding: 5px 8px;
+  color: var(--text-2);
+  opacity: 0.45;
+}
+
+/* Inspetor */
+.inspector {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  user-select: text;
+}
+
+.inspector section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.inspector h3 {
+  margin: 0;
+  font-weight: 400;
+}
+
+.insp-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.insp-head h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.insp-summary {
+  margin: 0;
+  color: var(--text-2);
+}
+
+.muted {
+  color: var(--muted);
+  margin: 0;
+}
+
+.ref-chip {
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: var(--brand);
+  color: var(--on-accent);
+  font-size: 12px;
+}
+
+.prop {
+  display: grid;
+  gap: 4px;
+}
+
+.prop > span {
+  color: var(--text-2);
+}
+
+.prop small,
+.pins small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.field {
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-family: var(--font-mono);
+}
+
+.field:hover {
+  border-color: var(--line-hover);
+}
+
+.field:focus {
+  outline: none;
+  border-color: var(--focus);
+}
+
+.field.bad {
+  border-color: var(--e-danger);
+}
+
+.markings,
+.pins,
+.members,
+.nets {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.markings li {
+  display: grid;
+  gap: 3px;
+}
+
+.markings code {
+  justify-self: start;
+  padding: 1px 6px;
+  border-radius: 5px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-strong);
+}
+
+.markings span {
+  color: var(--text-2);
+  font-size: 12px;
+  white-space: pre-line;
+}
+
+.pins li {
+  display: grid;
+  gap: 2px;
+}
+
+.pin-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.members {
+  gap: 4px;
+}
+
+.nets {
+  gap: 6px;
+}
+
+.nets li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.net-chip {
+  flex: none;
+  padding: 0 6px;
+  border-radius: 5px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 18px;
+  color: #fff;
+  background: var(--brand);
+  cursor: default;
+}
+
+.net-chip.k-gnd {
+  background: var(--line-strong);
+}
+.net-chip.k-power {
+  background: var(--e-vcc);
+}
+.net-chip.k-short {
+  background: var(--e-danger);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--e-danger) 30%, transparent);
+}
+.net-chip.k-none {
+  background: transparent;
+  color: var(--muted);
+  border: 1px dashed var(--line-strong);
+}
+
+.warning {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--e-danger) 45%, transparent);
+  background: color-mix(in srgb, var(--e-danger) 10%, transparent);
+  color: var(--text);
+  font-size: 12px;
+}
+
+.warning p {
+  margin: 0;
+}
+
+.warning p + p {
+  margin-top: 6px;
+}
+
+kbd {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 0 4px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--bg);
+}
+
+/* Canvas */
+.canvas-panel {
+  grid-area: canvas;
+  position: relative;
+  background: var(--bg);
+}
+
+.canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+.canvas[data-cursor="crosshair"] {
+  cursor: crosshair;
+}
+.canvas[data-cursor="grab"] {
+  cursor: grab;
+}
+.canvas[data-cursor="grabbing"] {
+  cursor: grabbing;
+}
+
+.canvas[data-cursor="default"] .part {
+  cursor: move;
+}
+
+.canvas .pin {
+  cursor: crosshair;
+}
+
+.pin-dot {
+  fill: var(--panel);
+  stroke: var(--text-2);
+  stroke-width: 1.2;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 0.1s;
+}
+
+.pin:hover .pin-dot {
+  fill: var(--brand);
+  stroke: var(--brand);
+  transform: scale(1.6);
+}
+
+.part > g {
+  filter: var(--part-outline);
+}
+
+.part.ghost {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.designator {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  fill: var(--muted);
+  pointer-events: none;
+}
+
+.designator .ref {
+  fill: var(--text-2);
+  font-weight: 500;
+}
+
+.print {
+  cursor: help;
+  pointer-events: bounding-box;
+}
+
+.selection-box {
+  fill: color-mix(in srgb, var(--brand) 6%, transparent);
+  stroke: var(--brand);
+  stroke-width: 1.2;
+  stroke-dasharray: 4 3;
+  pointer-events: none;
+}
+
+.wire {
+  fill: none;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.wire.k-signal {
+  stroke: var(--brand);
+}
+.wire.k-power {
+  stroke: var(--e-vcc);
+}
+.wire.k-gnd {
+  stroke: var(--text-2);
+}
+.wire.k-short {
+  stroke: var(--e-danger);
+  stroke-dasharray: 6 4;
+  animation: short-flow 0.5s linear infinite;
+}
+
+.wire.hot {
+  stroke-width: 4;
+}
+
+@keyframes short-flow {
+  to {
+    stroke-dashoffset: -10;
+  }
+}
+
+.wire-hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 12;
+  stroke-linecap: round;
+}
+
+.canvas[data-cursor="default"] .wire-hit {
+  cursor: move;
+}
+
+.wire-halo {
+  fill: none;
+  stroke: var(--brand);
+  stroke-opacity: 0.25;
+  stroke-width: 10;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.wire-draft {
+  fill: none;
+  stroke: var(--brand);
+  stroke-width: 2;
+  stroke-dasharray: 5 4;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.junction {
+  fill: var(--text);
+  pointer-events: none;
+}
+
+.loose-end {
+  fill: var(--bg);
+  stroke: var(--e-warn);
+  stroke-width: 1.6;
+  pointer-events: none;
+}
+
+.marquee {
+  fill: color-mix(in srgb, var(--brand) 8%, transparent);
+  stroke: var(--brand);
+  stroke-width: 1;
+  pointer-events: none;
+}
+
+.cursor-dot {
+  fill: none;
+  stroke: var(--brand);
+  pointer-events: none;
+}
+
+/* Barra de ferramentas flutuante */
+.toolbar {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--panel);
+  border: var(--panel-border);
+  box-shadow: var(--panel-shadow);
+}
+
+.toolbar .sep {
+  width: 1px;
+  height: 18px;
+  margin: 0 3px;
+  background: var(--line);
+}
+
+.tool {
+  width: 30px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+.tool:hover:not(:disabled) {
+  background: var(--bg);
+  color: var(--text-strong);
+}
+
+.tool[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.tool:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.canvas-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  color: var(--muted);
+  line-height: 1.7;
+  pointer-events: none;
+}
+
+/* Explicações */
+.tooltip {
+  position: fixed;
+  z-index: 10;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--panel);
+  border: 1px solid var(--line-hover);
+  box-shadow: 0 6px 24px #0000001f;
+  pointer-events: none;
+}
+
+.tooltip-title {
+  font-size: 12px;
+  color: var(--text-strong);
+}
+
+.tooltip-body {
+  margin-top: 3px;
+  font-size: 12px;
+  color: var(--text-2);
+  white-space: pre-line;
+}
+
+/* Barra de status */
+.statusbar {
+  grid-area: status;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 6px;
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.statusbar .spacer {
+  flex: 1;
+}
+
+
+.status-btn {
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.status-btn:hover {
+  background: var(--panel);
+  color: var(--text);
+}
+
+/* Simulação: peças */
+.part.burned > g {
+  filter: grayscale(0.85) brightness(0.55);
+}
+
+.part.hot > g {
+  filter: drop-shadow(0 0 3px #ff4a2b) drop-shadow(0 0 8px #ff4a2b99);
+  animation: hot-pulse 1.1s ease-in-out infinite alternate;
+}
+
+@keyframes hot-pulse {
+  from {
+    filter: drop-shadow(0 0 2px #ff4a2b) drop-shadow(0 0 4px #ff4a2b66);
+  }
+}
+
+.smoke circle {
+  fill: #8a8a92;
+  opacity: 0;
+  pointer-events: none;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: smoke 2.6s ease-out infinite;
+}
+
+.smoke circle:nth-child(2) {
+  animation-delay: 0.9s;
+}
+.smoke circle:nth-child(3) {
+  animation-delay: 1.7s;
+}
+
+@keyframes smoke {
+  0% {
+    transform: translateY(0) scale(0.5);
+    opacity: 0.55;
+  }
+  100% {
+    transform: translateY(-28px) scale(1.7);
+    opacity: 0;
+  }
+}
+
+.designator .burned-label {
+  fill: var(--e-danger);
+  font-weight: 600;
+}
+
+.led-halo {
+  pointer-events: none;
+}
+
+/* Simulação: fios */
+.flow {
+  stroke: var(--e-warn);
+  stroke-width: 4.5;
+  stroke-linecap: round;
+  stroke-dasharray: 0 16;
+  pointer-events: none;
+  animation: flow linear infinite;
+}
+
+@keyframes flow {
+  to {
+    stroke-dashoffset: -16;
+  }
+}
+
+.vtag {
+  pointer-events: none;
+}
+
+.vtag text {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  fill: #fff;
+}
+
+/* Legenda */
+.legend {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: var(--panel);
+  border: var(--panel-border);
+  box-shadow: var(--panel-shadow);
+  font-size: 11px;
+  color: var(--text-2);
+}
+
+.legend .scale {
+  width: 96px;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--muted), var(--e-vcc));
+}
+
+.legend .flow-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 8px;
+}
+
+.legend .flow-key i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--e-warn);
+}
+
+/* Barra de status: energia */
+.power {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 20px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  font: inherit;
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+.power .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--line-strong);
+}
+
+.power.on {
+  color: var(--text-strong);
+}
+
+.power.on .dot {
+  background: #2fd15a;
+  box-shadow: 0 0 6px #2fd15a;
+}
+
+/* Inspetor: simulação */
+.status {
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 5px;
+  font-size: 10px;
+  line-height: 16px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.s-idle {
+  background: var(--bg);
+  color: var(--muted);
+  border: 1px solid var(--line);
+}
+.s-ok {
+  background: color-mix(in srgb, #2fd15a 18%, transparent);
+  color: var(--text);
+}
+.s-warn {
+  background: color-mix(in srgb, var(--e-warn) 30%, transparent);
+  color: var(--text);
+}
+.s-danger {
+  background: var(--e-danger);
+  color: #fff;
+}
+
+.note {
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  border: 1px solid var(--line);
+}
+
+.note p {
+  margin: 6px 0;
+}
+
+.n-info {
+  background: var(--bg);
+}
+.n-warn {
+  border-color: color-mix(in srgb, var(--e-warn) 55%, transparent);
+  background: color-mix(in srgb, var(--e-warn) 12%, transparent);
+}
+.n-danger {
+  border-color: color-mix(in srgb, var(--e-danger) 45%, transparent);
+  background: color-mix(in srgb, var(--e-danger) 10%, transparent);
+}
+
+.why {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--text-2);
+  font-size: 12px;
+}
+
+.path {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.path .step {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.path .step i {
+  font-style: normal;
+  color: var(--muted);
+}
+
+.path .step > span {
+  padding: 1px 6px;
+  border-radius: 5px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+}
+
+.path .step.self > span {
+  border-color: var(--brand);
+  color: var(--text-strong);
+}
+
+.path small {
+  color: var(--muted);
+}
+
+.readings {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.readings td {
+  padding: 3px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.readings td:first-child {
+  color: var(--muted);
+  width: 48px;
+}
+
+.energy {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.energy li {
+  cursor: pointer;
+}
+
+.energy-row {
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.energy .bar {
+  height: 3px;
+  margin-top: 3px;
+  border-radius: 2px;
+}
+
+.energy .bar.src {
+  background: var(--e-vcc);
+}
+.energy .bar.load {
+  background: var(--brand);
+}
+
+/* Botões e chaves */
+.actuator {
+  cursor: pointer;
+}
+
+/* Pontas de prova */
+.probe {
+  cursor: grab;
+}
+
+.probe line {
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+.probe-tip {
+  fill: var(--bg);
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+.probe-head {
+  fill: currentColor;
+}
+
+.probe text {
+  font-family: var(--font-mono);
+  font-size: 7px;
+  fill: var(--bg);
+  font-weight: 600;
+  pointer-events: none;
+}
+
+/* Barra de status: tempo */
+.time {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.speed {
+  height: 20px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--text-2);
+  font: inherit;
+}
+
+/* Bancada de instrumentos */
+.dock {
+  grid-area: dock;
+  flex-direction: row;
+  height: 300px;
+}
+
+.instrument {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  min-width: 0;
+}
+
+.instrument header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.instrument h3 {
+  margin: 0 auto 0 0;
+  font-weight: 400;
+}
+
+.meter {
+  width: 300px;
+  flex: none;
+  border-right: 1px solid var(--line);
+}
+
+.scope {
+  flex: 1;
+}
+
+.segmented.small button {
+  height: 22px;
+  padding: 0 10px;
+}
+
+.field.small {
+  height: 24px;
+  padding: 0 6px;
+  font-size: 12px;
+}
+
+.inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.lcd {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #0f380f;
+  color: #9bbc0f;
+}
+
+.lcd span {
+  font-size: 34px;
+  line-height: 1;
+}
+
+.lcd small {
+  font-size: 14px;
+}
+
+.lcd.beeping {
+  box-shadow: 0 0 0 2px #9bbc0f;
+}
+
+.help {
+  font-size: 12px;
+  min-height: 32px;
+}
+
+.probe-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.probe-row > span:nth-child(3) {
+  margin-left: auto;
+}
+
+.probe-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.link {
+  border: 0;
+  background: none;
+  padding: 0 2px;
+  color: var(--brand);
+  font: inherit;
+  cursor: pointer;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.scope-body {
+  flex: 1;
+  display: flex;
+  gap: 12px;
+  min-height: 0;
+}
+
+.screen {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border-radius: 8px;
+  background: #0b1210;
+}
+
+.screen .grid {
+  stroke: #ffffff14;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.screen .zero {
+  stroke: #ffffff40;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.screen .trace {
+  fill: none;
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+  stroke-linejoin: round;
+}
+
+.screen-hint {
+  fill: #ffffff60;
+  font-size: 12px;
+  font-family: var(--font-sans);
+}
+
+.scope-side {
+  width: 280px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 12px;
+}
+
+.scope-side p {
+  margin: 0;
+}
+
+.channel p {
+  margin: 4px 0 0 15px;
+  font-size: 11px;
+}
+
+/* Microcontroladores: registradores e sequência */
+.regs {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.reg-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  cursor: help;
+}
+
+.reg-bits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-top: 4px;
+}
+
+.bit {
+  display: grid;
+  justify-items: center;
+  min-width: 30px;
+  padding: 2px 3px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--bg);
+  font-family: var(--font-mono);
+  cursor: pointer;
+}
+
+.bit span {
+  font-size: 12px;
+  color: var(--text-strong);
+}
+
+.bit small {
+  font-size: 8px;
+  color: var(--muted);
+}
+
+.bit.on {
+  border-color: var(--brand);
+  background: color-mix(in srgb, var(--brand) 14%, transparent);
+}
+
+.bit:disabled {
+  cursor: default;
+  opacity: 0.8;
+}
+
+.reg-modes {
+  display: grid;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.reg-modes label {
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  align-items: center;
+  font-size: 11px;
+}
+
+.reg-note {
+  margin: 4px 0 0;
+  font-size: 11px;
+}
+
+.steps {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.step-row {
+  font-size: 12px;
+}
+
+.step-row > * {
+  margin-right: 4px;
+  margin-bottom: 2px;
+}
+
+.step-row.active::marker {
+  color: var(--brand);
+  font-weight: 700;
+}
+
+.step-row.active select:first-child {
+  border-color: var(--brand);
+}
+
+.field.ms {
+  width: 64px;
+}
+
+.pin-internals {
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg);
+}
+
+.pi-txt {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  fill: var(--muted);
+}
+
+.pi-txt.strong {
+  fill: var(--text-strong);
+}
+
+/* Vistas de protoboard e placa */
+.topbar-center {
+  display: flex;
+  gap: 8px;
+}
+
+.board-view {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.board-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  touch-action: none;
+}
+
+.board-note {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  margin: 0;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: var(--panel);
+  border: var(--panel-border);
+  font-size: 12px;
+  color: var(--text-2);
+  pointer-events: none;
+}
+
+.bb-board {
+  fill: #f4f2ec;
+  stroke: #d8d4c8;
+}
+
+.bb-gap {
+  fill: #e4e0d4;
+}
+
+.bb-hole {
+  fill: #b9b4a6;
+}
+
+.bb-hole.used {
+  fill: #3a3a40;
+}
+
+.bb-ref {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  fill: #6b6b73;
+}
+
+.bb-chip {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  fill: #f4f4f5;
+}
+
+.bb-module {
+  fill: #1b2a6b;
+}
+
+.pcb-board {
+  fill: #0d4d2c;
+  stroke: #d4a93a;
+  stroke-width: 1.5;
+}
+
+.pcb-trace {
+  fill: none;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pcb-trace.top {
+  stroke: #e08a2c;
+}
+
+.pcb-trace.bottom {
+  stroke: #4f8cff;
+  opacity: 0.75;
+}
+
+.pcb-pad {
+  fill: #d4a93a;
+}
+
+.pcb-drill {
+  fill: #0a2618;
+}
+
+.pcb-silk rect {
+  stroke: #f4f4f5;
+  stroke-width: 1;
+}
+
+.pcb-silk text {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  fill: #f4f4f5;
+}
+
+.pcb-mark {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.pcb-air {
+  stroke: var(--e-warn);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+}
+
+.legend .swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.legend .swatch.top {
+  background: #e08a2c;
+}
+
+.legend .swatch.bottom {
+  background: #4f8cff;
+}
+
+.board-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}

@@ -1,0 +1,105 @@
+/*
+ * Tokens de design — paleta extraída de blueprint.page.
+ * Claro é o padrão; escuro segue o sistema, a menos que data-theme force um dos dois.
+ */
+:root {
+  color-scheme: light;
+
+  /* Marca */
+  --brand: #104bff;
+  --brand-2: #4976ff;
+  --accent: var(--brand);
+  --accent-hover: #0a3ee0;
+  --on-accent: #fff;
+  --focus: var(--brand);
+
+  /* Superfícies */
+  --shell-bg: #eeeff1;
+  --bg: #f7f7f8;
+  --panel: #fff;
+
+  /* Linhas */
+  --line: #e4e4e7;
+  --line-hover: #d4d4d8;
+  --line-focus: #c4c4ca;
+  --line-strong: #a1a1aa;
+
+  /* Texto */
+  --text-strong: #000;
+  --text: #18181b;
+  --text-2: #3f3f46;
+  --muted: #5f5f68;
+
+  /* Elétrico */
+  --e-vcc: #ff4a2b;
+  --e-3v3: var(--brand-2);
+  --e-gnd: var(--line-strong);
+  --e-signal: var(--brand);
+  --e-warn: #f4c80f;
+  --e-danger: #ff4a2b;
+
+  /* Canvas */
+  --grid-dot: #d4d4d8;
+  --grid-dot-major: #a1a1aa;
+  /* Contorno das peças: no escuro, peças pretas somem sem ele. */
+  --part-outline: none;
+  --probe-black: #18181b;
+
+  /* Painéis */
+  --panel-gap: 8px;
+  --panel-radius: 14px;
+  --panel-inset: 6px;
+  --panel-radius-inner: calc(var(--panel-radius) - var(--panel-inset));
+  --panel-head: 52px;
+  --content-inset: 24px;
+  --panel-border: 1px solid var(--line);
+  --panel-shadow: 0 1px 2px #0000000a, 0 6px 20px #00000008;
+
+  /* Tipografia */
+  --font-sans: "Geist Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --shell-bg: #09090a;
+    --bg: #0c0c0d;
+    --panel: #131314;
+    --line: #242427;
+    --line-hover: #38383d;
+    --line-focus: #3a3a40;
+    --line-strong: #4a4a52;
+    --text-strong: #fff;
+    --text: #ededef;
+    --text-2: #c9c9cf;
+    --muted: #8a8a92;
+    --grid-dot: #242427;
+    --grid-dot-major: #3a3a40;
+    --part-outline: drop-shadow(0 0 0.7px #ffffff70);
+    --probe-black: #d4d4d8;
+    --panel-border: 1px solid #1e1e21;
+    --panel-shadow: none;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --shell-bg: #09090a;
+  --bg: #0c0c0d;
+  --panel: #131314;
+  --line: #242427;
+  --line-hover: #38383d;
+  --line-focus: #3a3a40;
+  --line-strong: #4a4a52;
+  --text-strong: #fff;
+  --text: #ededef;
+  --text-2: #c9c9cf;
+  --muted: #8a8a92;
+  --grid-dot: #242427;
+  --grid-dot-major: #3a3a40;
+  --part-outline: drop-shadow(0 0 0.7px #ffffff70);
+  --probe-black: #d4d4d8;
+  --panel-border: 1px solid #1e1e21;
+  --panel-shadow: none;
+}
