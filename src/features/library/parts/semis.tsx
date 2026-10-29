@@ -7,7 +7,7 @@ const G = 20;
 export const LED_COLORS: Record<string, { label: string; hex: string; vf: number; nm: string }> = {
   red: { label: "Vermelho", hex: "#ff3b2f", vf: 2.0, nm: "~630 nm" },
   yellow: { label: "Amarelo", hex: "#ffc400", vf: 2.1, nm: "~590 nm" },
-  green: { label: "Verde", hex: "#2fd15a", vf: 2.2, nm: "~525 nm" },
+  green: { label: "Verde", hex: "#2fd15a", vf: 2.2, nm: "~570 nm" },
   blue: { label: "Azul", hex: "#2f6bff", vf: 3.0, nm: "~470 nm" },
   white: { label: "Branco", hex: "#f2f4ff", vf: 3.1, nm: "LED azul + fósforo" },
 };
@@ -112,7 +112,7 @@ const DIODES: Record<string, { glass: boolean; explain: string }> = {
   },
   "1N4148": {
     glass: true,
-    explain: "Diodo de sinal pequeno, corpo de vidro. Rápido, mas só aguenta ~200 mA.",
+    explain: "Diodo de sinal pequeno, corpo de vidro. Rápido, mas só aguenta ~200 mA contínuos.",
   },
 };
 

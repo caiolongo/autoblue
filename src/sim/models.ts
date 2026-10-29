@@ -28,28 +28,28 @@ export const PHYS = {
   potWiper: 0.5,
   led: { n: 2, rs: 10, iRated: 0.02, iMax: 0.03, iBurn: 0.06, vReverse: 5 },
   diodes: {
-    "1N4007": { is: 7.03e-9, n: 1.81, rs: 0.034, iMax: 1 },
-    "1N5819": { is: 3.17e-5, n: 1.37, rs: 0.051, iMax: 1 },
-    "1N4148": { is: 2.52e-9, n: 1.75, rs: 0.568, iMax: 0.3 },
-  } as Record<string, { is: number; n: number; rs: number; iMax: number }>,
+    "1N4007": { is: 7.03e-9, n: 1.81, rs: 0.034, iMax: 1, vrrm: 1000 },
+    "1N5819": { is: 3.17e-5, n: 1.37, rs: 0.051, iMax: 1, vrrm: 40 },
+    "1N4148": { is: 2.52e-9, n: 1.75, rs: 0.568, iMax: 0.2, vrrm: 100 },
+  } as Record<string, { is: number; n: number; rs: number; iMax: number; vrrm: number }>,
   bjts: {
-    "2N2222A": { is: 1.4e-14, bf: 200, br: 3, icMax: 0.6, pMax: 0.625 },
-    "2N3904": { is: 6.7e-15, bf: 250, br: 0.7, icMax: 0.2, pMax: 0.625 },
-    BC547: { is: 1.8e-14, bf: 300, br: 8, icMax: 0.1, pMax: 0.5 },
-  } as Record<string, { is: number; bf: number; br: number; icMax: number; pMax: number }>,
+    "2N2222A": { is: 1.4e-14, bf: 200, br: 3, icMax: 0.6, pMax: 0.625, vceo: 40 },
+    "2N3904": { is: 6.7e-15, bf: 250, br: 0.7, icMax: 0.2, pMax: 0.625, vceo: 40 },
+    BC547: { is: 1.8e-14, bf: 300, br: 8, icMax: 0.1, pMax: 0.5, vceo: 45 },
+  } as Record<string, { is: number; bf: number; br: number; icMax: number; pMax: number; vceo: number }>,
   mosfets: {
-    IRLZ44N: { k: 13, vth: 1.5, idMax: 47, vgsMax: 20, pWarn: 1, pBurn: 4 },
-    IRF540N: { k: 3.2, vth: 3, idMax: 33, vgsMax: 20, pWarn: 1, pBurn: 4 },
-  } as Record<string, { k: number; vth: number; idMax: number; vgsMax: number; pWarn: number; pBurn: number }>,
+    IRLZ44N: { k: 13, vth: 1.5, idMax: 47, vdsMax: 55, vgsMax: 20, pWarn: 1, pBurn: 4 },
+    IRF540N: { k: 3.2, vth: 3, idMax: 33, vdsMax: 100, vgsMax: 20, pWarn: 1, pBurn: 4 },
+  } as Record<string, { k: number; vth: number; idMax: number; vdsMax: number; vgsMax: number; pWarn: number; pBurn: number }>,
   bodyDiode: { is: 1e-12, n: 1, rs: 0.01 },
   pnps: {
-    "2N3906": { is: 1.4e-14, bf: 200, br: 4, icMax: 0.2, pMax: 0.625 },
-    BC557: { is: 1e-14, bf: 250, br: 6, icMax: 0.1, pMax: 0.5 },
-  } as Record<string, { is: number; bf: number; br: number; icMax: number; pMax: number }>,
+    "2N3906": { is: 1.4e-14, bf: 200, br: 4, icMax: 0.2, pMax: 0.625, vceo: 40 },
+    BC557: { is: 1e-14, bf: 250, br: 6, icMax: 0.1, pMax: 0.5, vceo: 45 },
+  } as Record<string, { is: number; bf: number; br: number; icMax: number; pMax: number; vceo: number }>,
   smallMosfets: {
-    "2N7000": { k: 0.1, vth: 2.1, idMax: 0.2, pMax: 0.4, vgsMax: 20 },
-    BS250: { k: 0.01, vth: 2.4, idMax: 0.18, pMax: 0.83, vgsMax: 20 },
-  } as Record<string, { k: number; vth: number; idMax: number; pMax: number; vgsMax: number }>,
+    "2N7000": { k: 0.1, vth: 2.1, idMax: 0.2, pMax: 0.4, vdsMax: 60, vgsMax: 20 },
+    BS250: { k: 0.01, vth: 2.4, idMax: 0.18, pMax: 0.83, vdsMax: 45, vgsMax: 20 },
+  } as Record<string, { k: number; vth: number; idMax: number; pMax: number; vdsMax: number; vgsMax: number }>,
   /** Diodos de proteção das entradas dos chips. Sem resistência série: evita um nó interno por entrada. */
   clamp: { is: 1e-12, n: 1, rs: 0 },
   /** Contato fechado de botões e chaves; pernas ligadas por dentro. */
@@ -87,6 +87,15 @@ export function potFraction(p: Part["props"]) {
 
 type Node = (pin: string) => number;
 
+/** Entre quais pinos a peça fica em curto quando queima assim. */
+const SHORT_PINS: Record<string, [string, string]> = {
+  npn: ["C", "E"],
+  pnp: ["C", "E"],
+  mosfet: ["D", "S"],
+  mosfetSmall: ["D", "S"],
+  diode: ["A", "K"],
+};
+
 /** O que um microcontrolador está fazendo neste quadro: pinos e consumo (A). */
 export interface McuDrive {
   pins: Record<string, PinDrive>;
@@ -104,7 +113,7 @@ function model(part: Part, n: Node, tripped: boolean, pressed: boolean, mcu?: Mc
 
   if (part.damage?.mode === "open") return [];
   if (part.damage?.mode === "short") {
-    const [a, b] = part.kind === "npn" ? ["C", "E"] : part.kind === "mosfet" ? ["D", "S"] : ["1", "2"];
+    const [a, b] = SHORT_PINS[part.kind] ?? ["1", "2"];
     return [two({ type: "resistor", id, a: n(a), b: n(b), r: 0.05 }, a, b)];
   }
 

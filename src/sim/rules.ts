@@ -52,7 +52,7 @@ export interface Verdict {
 }
 
 export interface Context {
-  /** Maior tensão de fonte do circuito (para sugerir resistores). */
+  /** Tensão que alimenta o ramo do LED, contada a partir do cátodo (para sugerir o resistor). */
   supplyV: number;
   tripped: boolean;
   pressed: boolean;
@@ -95,9 +95,9 @@ function source(r: Reading, ctx: Context, plus: string, minus: string, rInt: num
   }
   const notes: Note[] = [];
   const why = [
-    `Entregando ${A(i)} ao circuito.`,
-    `Tensão nos terminais: ${V(vNom)} − ${A(i)} × ${R(rInt)} (resistência interna) = ${V(vt)}.`,
-    `Potência entregue: P = V × I = ${W(vt * i)}.`,
+    i < 0 ? `Recebendo ${A(-i)}: a corrente entra pelo +.` : `Entregando ${A(i)} ao circuito.`,
+    `Tensão nos terminais: ${V(vNom)} ${i < 0 ? "+" : "−"} ${A(Math.abs(i))} × ${R(rInt)} (resistência interna) = ${V(vt)}.`,
+    `Potência ${i < 0 ? "recebida" : "entregue"}: P = V × I = ${W(Math.abs(vt * i))}.`,
     `Perdido como calor dentro da fonte: I² × r = ${W(i * i * rInt)}.`,
   ];
   if (i < 0) {
@@ -312,7 +312,14 @@ const RULES: Record<string, Rule> = {
     const d = PHYS.diodes[str(part.props, "model")];
     const i = pin(r, "A").i;
     const vd = pin(r, "A").v - pin(r, "K").v;
-    const v: Verdict = { status: "ok", notes: [], why: [], stress: i / (2 * d.iMax), heat: i / d.iMax };
+    const v: Verdict = { status: "ok", notes: [], why: [], stress: Math.max(i / (2 * d.iMax), -vd / d.vrrm), heat: i / d.iMax };
+    if (-vd > d.vrrm) {
+      v.burn = {
+        mode: "short",
+        reason: `${V(-vd)} ao contrário, acima dos ${V(d.vrrm)} que o ${str(part.props, "model")} aguenta. A junção rompeu e o diodo virou um curto.`,
+      };
+      return v;
+    }
     if (i < 1e-6) {
       v.status = "idle";
       v.why.push(
@@ -356,9 +363,14 @@ const RULES: Record<string, Rule> = {
       }
       why.push(`Calor: P ≈ Vce × Ic = ${W(p)} (aguenta ~${W(q.pMax)}).`);
     }
-    const v: Verdict = { status, notes: [], why, heat: p / q.pMax, stress: Math.max(ic / (2 * q.icMax), p / (2 * q.pMax), ib / 0.2) };
+    const v: Verdict = { status, notes: [], why, heat: p / q.pMax, stress: Math.max(ic / (2 * q.icMax), p / (2 * q.pMax), ib / 0.2, vce / q.vceo) };
     if (ib > 0.2) {
       v.burn = { mode: "open", reason: `Passaram ${A(ib)} pela base, sem resistor limitando. A junção base-emissor queimou.` };
+    } else if (vce > q.vceo) {
+      v.burn = {
+        mode: "short",
+        reason: `${V(vce)} entre coletor e emissor, acima dos ${V(q.vceo)} que o ${str(part.props, "model")} aguenta. A junção rompeu e queimou em curto.`,
+      };
     } else if (ic > 2 * q.icMax || p > 2 * q.pMax) {
       v.burn = {
         mode: "short",
@@ -389,11 +401,14 @@ const RULES: Record<string, Rule> = {
       else why.push("Parcialmente ligado (saturação): a corrente depende de Vgs. Aqui ele esquenta mais.");
       why.push(`Calor: P = Vds × Id = ${W(p)}.`);
     }
-    const v: Verdict = { status, notes: [], why, heat: p / m.pWarn, stress: Math.max(p / m.pBurn, Math.abs(vgs) / m.vgsMax, id / m.idMax) };
+    const v: Verdict = { status, notes: [], why, heat: p / m.pWarn, stress: Math.max(p / m.pBurn, Math.abs(vgs) / m.vgsMax, id / m.idMax, vds / m.vdsMax) };
     if (Math.abs(vgs) > m.vgsMax) {
       v.burn = { mode: "short", reason: `Passou de ${V(m.vgsMax)} entre porta e fonte: a camada isolante da porta furou.` };
+    } else if (vds > m.vdsMax) {
+      v.burn = { mode: "short", reason: `${V(vds)} entre dreno e fonte, acima dos ${V(m.vdsMax)} que ele aguenta. Rompeu e queimou em curto.` };
     } else if (p > m.pBurn || id > m.idMax) {
-      v.burn = { mode: "short", reason: `Dissipou ${W(p)} sem dissipador de calor. Queimou em curto: dreno e fonte ficaram ligados direto.` };
+      const cause = id > m.idMax ? `Passaram ${A(id)}, acima dos ${A(m.idMax)} que ele aguenta.` : `Dissipou ${W(p)} sem dissipador de calor.`;
+      v.burn = { mode: "short", reason: `${cause} Queimou em curto: dreno e fonte ficaram ligados direto.` };
     } else if (p > m.pWarn) {
       v.status = "warn";
       v.notes.push({ level: "warn", text: `Dissipando ${W(p)}: sem dissipador, um TO-220 aguenta só ~1–2 W.` });
@@ -518,8 +533,9 @@ RULES.pnp = (part, r) => {
     why.push(vec < 0.25 ? `Saturado: chave fechada entre emissor e coletor (sobram ${V(vec)}).` : `Região ativa: β ≈ ${(ic / ib).toFixed(0)}.`);
     why.push(`Calor: ${W(p)} (aguenta ~${W(q.pMax)}).`);
   }
-  const v: Verdict = { status, notes: [], why, heat: p / q.pMax, stress: Math.max(ic / (2 * q.icMax), p / (2 * q.pMax), ib / 0.2) };
+  const v: Verdict = { status, notes: [], why, heat: p / q.pMax, stress: Math.max(ic / (2 * q.icMax), p / (2 * q.pMax), ib / 0.2, vec / q.vceo) };
   if (ib > 0.2) v.burn = { mode: "open", reason: `Passaram ${A(ib)} pela base, sem resistor limitando.` };
+  else if (vec > q.vceo) v.burn = { mode: "short", reason: `${V(vec)} entre emissor e coletor, acima dos ${V(q.vceo)} que ele aguenta: rompeu e queimou em curto.` };
   else if (ic > 2 * q.icMax || p > 2 * q.pMax) v.burn = { mode: "short", reason: `Coletor com ${A(ic)} e ${W(p)} de calor: queimou em curto.` };
   else if (ic > q.icMax || p > q.pMax) {
     v.status = "warn";
@@ -549,8 +565,9 @@ RULES.mosfetSmall = (part, r) => {
     why.push(`Corrente no canal: ${A(id)}; queda: ${V(vds)}${id > 1e-6 ? ` (Rds ≈ ${R(vds / id)})` : ""}.`);
     why.push(`Calor: ${W(p)}.`);
   }
-  const v: Verdict = { status, notes: [], why, heat: p / m.pMax, stress: Math.max(p / (2 * m.pMax), id / (2 * m.idMax), Math.abs(drive) / m.vgsMax) };
+  const v: Verdict = { status, notes: [], why, heat: p / m.pMax, stress: Math.max(p / (2 * m.pMax), id / (2 * m.idMax), Math.abs(drive) / m.vgsMax, vds / m.vdsMax) };
   if (Math.abs(drive) > m.vgsMax) v.burn = { mode: "short", reason: `Mais de ${V(m.vgsMax)} entre porta e fonte: o isolante da porta furou.` };
+  else if (vds > m.vdsMax) v.burn = { mode: "short", reason: `${V(vds)} entre dreno e fonte, acima dos ${V(m.vdsMax)} que ele aguenta: queimou em curto.` };
   else if (p > 2 * m.pMax || id > 2 * m.idMax) v.burn = { mode: "short", reason: `${A(id)} e ${W(p)} num MOSFET pequeno: queimou em curto.` };
   else if (p > m.pMax || id > m.idMax) {
     v.status = "warn";

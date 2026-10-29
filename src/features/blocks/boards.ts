@@ -29,7 +29,7 @@ export const BOARD_SPECS: BoardSpec[] = [
     name: "Placa estilo Uno",
     color: "#0f6e7a",
     summary:
-      "Placa no estilo do Arduino Uno: ATmega328P com cristal de 16 MHz (fusíveis de cristal), entrada USB de 5 V, regulador 7805 no VIN, LED “L” no D13, LED de energia, botão de reset com pull-up de 10 kΩ e capacitor de desacoplamento.",
+      "Placa no estilo do Arduino Uno: ATmega328P com cristal de 16 MHz (fusíveis de cristal) e seus dois capacitores de 22 pF, entrada USB de 5 V por um diodo Schottky (no lugar da chave automática do Uno, como no Nano: o USB e o 7805 não brigam), regulador 7805 no VIN, LED “L” no D13, LED de energia, botão de reset com pull-up de 10 kΩ e capacitor de desacoplamento.",
     parts: [
       ["J1", "usb5v", -22, -2],
       ["U1", "atmega328p", 0, 0, { clock: "xtal" }],
@@ -42,16 +42,20 @@ export const BOARD_SPECS: BoardSpec[] = [
       ["R3", "resistor", -6, -15, { resistance: 1000 }],
       ["D2", "led", 0, -15, { color: "green" }],
       ["C1", "capacitor", -3, 9, { type: "ceramic", capacitance: 100e-9 }],
+      ["C2", "capacitor", 1, 10, { type: "ceramic", capacitance: 22e-12 }, 1],
+      ["C3", "capacitor", 3, 10, { type: "ceramic", capacitance: 22e-12 }, 1],
+      ["D3", "diode", -16, -5, { model: "1N5819" }],
     ],
     nets: [
-      ["J1.VBUS", "U2.OUT", "R3.1", "U1.VCC", "U1.AVCC", "C1.1", "R1.2"],
-      ["J1.GND", "U2.GND", "D2.K", "U1.GND", "U1.GND2", "C1.2", "SW1.3", "D1.K"],
+      ["J1.VBUS", "D3.A"],
+      ["D3.K", "U2.OUT", "R3.1", "U1.VCC", "U1.AVCC", "C1.1", "R1.2"],
+      ["J1.GND", "U2.GND", "D2.K", "U1.GND", "U1.GND2", "C1.2", "SW1.3", "D1.K", "C2.2", "C3.2"],
       ["U1.RST", "R1.1", "SW1.1"],
       ["U1.PB5", "R2.1"],
       ["R2.2", "D1.A"],
       ["R3.2", "D2.A"],
-      ["U1.PB6", "Y1.1"],
-      ["U1.PB7", "Y1.2"],
+      ["U1.PB6", "Y1.1", "C2.1"],
+      ["U1.PB7", "Y1.2", "C3.1"],
     ],
     ports: [
       ["VIN", "U2.IN"],

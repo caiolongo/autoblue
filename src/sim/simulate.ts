@@ -1,4 +1,4 @@
-import type { Damage, Doc } from "../features/editor/doc";
+import type { Damage, Doc, Part } from "../features/editor/doc";
 import { getNetlist, pinKey, type Netlist } from "../features/editor/netlist";
 import { PARTS } from "../features/library/parts";
 import { solve, transient, type Solution } from "./engine";
@@ -81,21 +81,47 @@ function readings(doc: Doc, netlist: Netlist, built: Built, sol: Solution): Reco
   return out;
 }
 
-function supplyVoltage(doc: Doc) {
-  return Math.max(
-    0,
-    ...Object.values(doc.parts).map((p) =>
-      p.kind === "battery9v"
-        ? PHYS.battery9v.v
-        : p.kind === "cellAA"
-          ? PHYS.cellAA.v
-          : p.kind === "usb5v"
-            ? PHYS.usb.v
-            : p.kind === "benchSupply"
-              ? Number(p.props.voltage)
-              : 0,
-    ),
-  );
+/** Tensão nominal de quem fornece energia e o pino de referência dela. */
+function nominal(part: Part): [number, string] | null {
+  switch (part.kind) {
+    case "battery9v":
+      return [PHYS.battery9v.v, "-"];
+    case "cellAA":
+      return [PHYS.cellAA.v, "-"];
+    case "usb5v":
+      return [PHYS.usb.v, "GND"];
+    case "benchSupply":
+      return [Number(part.props.voltage), "-"];
+    case "reg7805":
+    case "ams1117":
+      return [PHYS.regulators[part.kind].vref, "GND"];
+  }
+  return null;
+}
+
+/**
+ * Tensão que alimenta o ramo de uma peça: sobe pelo caminho da corrente, passando por
+ * peças de 2 terminais (resistor, chave, diodo…), até a fonte, o regulador ou o pino de chip.
+ */
+function feedVoltage(doc: Doc, netlist: Netlist, reads: Record<string, Reading>, partId: string, pin: string): number {
+  const seen = new Set([partId]);
+  let at = { partId, pin };
+  for (let k = 0; k < 12; k++) {
+    const feeder = netlist.byPin
+      .get(pinKey(at.partId, at.pin))!
+      .pins.filter((p) => !seen.has(p.partId))
+      .map((p) => ({ ...p, i: reads[p.partId]?.pins[p.pin]?.i ?? 0 }))
+      .sort((a, b) => a.i - b.i)[0];
+    if (!feeder || feeder.i > -1e-7) break;
+    const r = reads[feeder.partId];
+    const nom = nominal(doc.parts[feeder.partId]);
+    if (nom) return nom[0] + r.pins[nom[1]].v;
+    const pins = Object.keys(r.pins);
+    if (pins.length !== 2) return r.pins[feeder.pin].v;
+    seen.add(feeder.partId);
+    at = { partId: feeder.partId, pin: pins.find((n) => n !== feeder.pin)! };
+  }
+  return reads[at.partId].pins[at.pin].v;
 }
 
 const MAX_ROUNDS = 12;
@@ -115,7 +141,6 @@ export function simulate(original: Doc, opts: SimOptions = {}): SimResult {
   const tripped = new Set(opts.tripped ?? []);
   const newDamage: Record<string, Damage> = {};
   const newTrips: string[] = [];
-  const supplyV = supplyVoltage(doc);
 
   try {
     let built!: Built;
@@ -159,7 +184,7 @@ export function simulate(original: Doc, opts: SimOptions = {}): SimResult {
             .filter((name) => netlist.byPin.get(pinKey(part.id, name))!.pins.length === 1),
         );
         verdicts[part.id] = judge(part, reads[part.id], {
-          supplyV,
+          supplyV: part.kind === "led" ? feedVoltage(doc, netlist, reads, part.id, "A") - reads[part.id].pins.K.v : 0,
           tripped: tripped.has(part.id),
           pressed: pressed.has(part.id),
           lonely,

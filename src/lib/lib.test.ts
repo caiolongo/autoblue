@@ -61,6 +61,7 @@ describe("códigos de 3 dígitos", () => {
     expect(ceramicCode(100e-9)).toBe("104");
     expect(ceramicCode(22e-12)).toBe("22");
     expect(ceramicCode(4.7e-9)).toBe("472");
+    expect(ceramicCode(2.2e-12)).toBe("2R2");
   });
   it("indutor", () => {
     expect(inductorCode(100e-6)).toBe("101");

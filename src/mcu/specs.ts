@@ -216,7 +216,7 @@ export const esp32: McuSpec = {
   gnd: "GND",
   vMin: 3.0,
   vMax: 3.6,
-  absMax: 3.9,
+  absMax: 3.6,
   brownout: 2.43,
   current: 0.08,
   rout: 30,

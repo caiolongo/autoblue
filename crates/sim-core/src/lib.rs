@@ -24,8 +24,11 @@ pub const VT: f64 = 0.025852;
 /// Condutância mínima de cada nó para a referência: mantém nós soltos definidos.
 const GMIN: f64 = 1e-12;
 const MAX_ITER: usize = 200;
-/// Acima disso a exponencial dos diodos vira reta (evita overflow no Newton).
+/// Acima disso a exponencial dos transistores vira reta (evita overflow no Newton).
 const XMAX: f64 = 40.0;
+/// Nos diodos a reta começa nesta corrente (A), não num expoente fixo: um LED azul
+/// tem Is ~1e-26 e conduz normalmente bem acima de e^40.
+const I_LIN: f64 = 100.0;
 /// Maior passo de tensão por iteração, em volts.
 const MAX_STEP: f64 = 2.0;
 /// Um indutor em DC é um fio: 1 mΩ.
@@ -296,14 +299,14 @@ pub struct TransientResult {
     pub settled: bool,
 }
 
-/// Exponencial que vira reta acima de XMAX. Retorna (valor, derivada).
-fn limexp(x: f64) -> (f64, f64) {
-    if x < XMAX {
+/// Exponencial que vira reta acima de `xmax`. Retorna (valor, derivada).
+fn limexp(x: f64, xmax: f64) -> (f64, f64) {
+    if x < xmax {
         let e = x.exp();
         (e, e)
     } else {
-        let e = XMAX.exp();
-        (e * (1.0 + x - XMAX), e)
+        let e = xmax.exp();
+        (e * (1.0 + x - xmax), e)
     }
 }
 
@@ -336,7 +339,7 @@ fn conductance(a: usize, b: usize, g: f64, v: &[f64], offset: f64) -> Block {
 
 fn junction(a: usize, k: usize, is: f64, n: f64, v: &[f64]) -> Block {
     let nvt = n * VT;
-    let (e, de) = limexp((v[a] - v[k]) / nvt);
+    let (e, de) = limexp((v[a] - v[k]) / nvt, XMAX.max((I_LIN / is).ln()));
     let i = is * (e - 1.0);
     let g = is * de / nvt;
     Block {
@@ -386,8 +389,8 @@ type Eval3 = ([f64; 3], [[f64; 3]; 3]);
 
 /// NPN de Ebers-Moll: correntes entrando por (c, b, e) e o jacobiano.
 fn npn_eval(vc: f64, vb: f64, ve: f64, is: f64, bf: f64, br: f64) -> Eval3 {
-    let (ef, def) = limexp((vb - ve) / VT);
-    let (er, der) = limexp((vb - vc) / VT);
+    let (ef, def) = limexp((vb - ve) / VT, XMAX);
+    let (er, der) = limexp((vb - vc) / VT, XMAX);
     let icc = is * (ef - 1.0);
     let iec = is * (er - 1.0);
     let gf = is * def / VT;
@@ -557,6 +560,9 @@ fn push_pull(vcc: usize, gnd: usize, out: usize, l: f64, rout: f64, v: &[f64]) -
 /// Valores do 555.
 const R555: f64 = 5000.0;
 const ROUT555: f64 = 10.0;
+/// Saída alta: ~1,4 V abaixo do VCC sem carga, ~1,7 V com 100 mA (datasheet).
+const VDROP555: f64 = 1.4;
+const ROUT555_HI: f64 = 3.0;
 
 enum Analysis<'a> {
     Dc,
@@ -797,8 +803,9 @@ fn blocks(p: &Prepared, s: &State, scale: f64, an: &Analysis) -> Vec<(usize, Blo
                 };
                 let go = 1.0 / ROUT555;
                 if q > 0.5 {
-                    // Saída alta fica ~1,7 V abaixo do VCC (estágio bipolar).
-                    push(conductance(out, vcc, go, v, -1.7 * go));
+                    // Saída alta: estágio bipolar (Darlington) fica abaixo do VCC.
+                    let gh = 1.0 / ROUT555_HI;
+                    push(conductance(out, vcc, gh, v, -VDROP555 * gh));
                     push(conductance(dis, gnd, GMIN, v, 0.0));
                 } else {
                     push(conductance(out, gnd, go, v, 0.1 * go));

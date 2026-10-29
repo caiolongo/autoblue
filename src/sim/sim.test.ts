@@ -834,3 +834,53 @@ describe("placas prontas", () => {
 function doc_kind(def: { parts: Record<string, { kind: string }> }, id: string) {
   return def.parts[id]?.kind;
 }
+
+describe("queimas e sugestões", () => {
+  it("PNP, MOSFET pequeno e diodo queimados em curto não derrubam a simulação", () => {
+    for (const [kind, props, pins] of [
+      ["pnp", {}, ["E", "C"]],
+      ["mosfetSmall", { model: "2N7000" }, ["D", "S"]],
+      ["diode", {}, ["A", "K"]],
+    ] as const) {
+      const b = new Bench();
+      const bt = b.add("battery9v");
+      const q = b.add(kind, props);
+      b.wire([bt, "+"], [q, pins[0]]);
+      b.wire([q, pins[1]], [bt, "-"]);
+      const doc = produce(b.doc, (d) => {
+        d.parts[q].damage = { mode: "short", reason: "teste" };
+      });
+      const s = simulate(doc);
+      expect(s.ok, `${kind}: ${s.error}`).toBe(true);
+      // Em curto, a bateria fica praticamente em curto também.
+      expect(Math.abs(s.parts[bt].reading.pins["+"].i), kind).toBeGreaterThan(1);
+    }
+  });
+
+  it("diodo com tensão reversa acima do máximo rompe em curto", () => {
+    const b = new Bench();
+    const cells = [0, 1, 2, 3, 4].map(() => b.add("battery9v"));
+    for (let k = 1; k < cells.length; k++) b.wire([cells[k - 1], "+"], [cells[k], "-"]);
+    const d = b.add("diode", { model: "1N5819" });
+    b.wire([cells[4], "+"], [d, "K"]);
+    b.wire([d, "A"], [cells[0], "-"]);
+    const s = simulate(b.doc);
+    expect(s.newDamage[d]?.mode).toBe("short");
+  });
+
+  it("resistor sugerido para o LED usa a tensão do regulador, não a da bateria", () => {
+    const b = new Bench();
+    const bt = b.add("battery9v");
+    const u = b.add("reg7805");
+    const r = b.add("resistor", { resistance: 47 });
+    const d = b.add("led", { color: "red" });
+    b.wire([bt, "+"], [u, "IN"]);
+    b.wire([bt, "-"], [u, "GND"]);
+    b.wire([u, "OUT"], [r, "1"]);
+    b.wire([r, "2"], [d, "A"]);
+    b.wire([d, "K"], [u, "GND"]);
+    const s = simulate(b.doc);
+    const tip = s.parts[d].why.find((w) => w.startsWith("Para ~"));
+    expect(tip).toMatch(/com 5(,0+)? V/);
+  });
+});

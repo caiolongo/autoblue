@@ -333,7 +333,7 @@ export const ne555 = dip({
   pins: [
     ["GND", "Terra (0 V)."],
     ["TRIG", "Disparo: abaixo de ⅓ do VCC, liga a saída (1)."],
-    ["OUT", "Saída: alta fica ~1,7 V abaixo do VCC. Aguenta até 200 mA."],
+    ["OUT", "Saída: alta fica ~1,4 V abaixo do VCC (~1,7 V com 100 mA de carga). Aguenta até 200 mA."],
     ["RESET", "Em 0, trava a saída em 0. Ligue no VCC para o 555 funcionar."],
     ["CTRL", "Acesso ao ponto de ⅔ do divisor interno. Normalmente fica solto ou com um capacitor de 10 nF para o GND."],
     ["THRES", "Limiar: acima de ⅔ do VCC, desliga a saída (0)."],

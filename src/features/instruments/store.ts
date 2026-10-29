@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { onSegment, samePoint, type Point } from "../../lib/geometry";
+import { flattenDoc } from "../blocks/blocks";
 import { pinsOf, type Doc } from "../editor/doc";
 import { getNetlist, pinKey, type Net } from "../editor/netlist";
 
@@ -52,7 +53,9 @@ export const useInstruments = create<InstrState>((set) => ({
 }));
 
 /** Nó elétrico no ponto: um pino ali, ou um fio passando por ali. */
-export function netAt(doc: Doc, p: Point): Net | null {
+export function netAt(original: Doc, p: Point): Net | null {
+  // Mesmo documento achatado que a simulação usa: os ids dos nós batem com o resultado.
+  const doc = flattenDoc(original);
   const netlist = getNetlist(doc);
   for (const part of Object.values(doc.parts)) {
     const hit = pinsOf(part).find(({ pos }) => samePoint(pos, p));

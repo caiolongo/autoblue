@@ -52,7 +52,10 @@ export function resistorBands(ohms: number): { bands: Band[]; value: number } {
 
 /** Código de 3 dígitos em pF dos capacitores cerâmicos: 100 nF → "104". */
 export function ceramicCode(farads: number): string {
-  const pf = Math.max(Math.round(farads * 1e12), 1);
+  const raw = farads * 1e12;
+  // Abaixo de 10 pF o "R" marca a vírgula: 2,2 pF → "2R2".
+  if (raw < 9.95) return Math.max(raw, 0.1).toFixed(1).replace(".", "R");
+  const pf = Math.round(raw);
   if (pf < 100) return String(pf);
   const exp = Math.floor(Math.log10(pf)) - 1;
   const digits = Math.round(pf / 10 ** exp);

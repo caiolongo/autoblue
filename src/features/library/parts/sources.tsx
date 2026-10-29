@@ -160,7 +160,7 @@ export const usb5v: PartDef = {
     fuse: {
       text: "F1",
       explain:
-        "Polyfuse de 500 mA: um fusível que se rearma sozinho. Se a corrente passar disso, ele esquenta e corta; quando esfria, volta a conduzir.",
+        "Polyfuse de 500 mA: um fusível que se rearma sozinho. Aguenta 500 mA o tempo todo; por volta de 1 A ele esquenta e corta. Quando esfria, volta a conduzir.",
     },
     vbus: { text: "VBUS", explain: "Saída de 5 V." },
     dm: { text: "D−", explain: "Dados (−)." },

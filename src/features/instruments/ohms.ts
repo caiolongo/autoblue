@@ -1,5 +1,6 @@
 import { solve, type SimElement } from "../../sim/engine";
 import { buildCircuit } from "../../sim/models";
+import { flattenDoc } from "../blocks/blocks";
 import type { Doc } from "../editor/doc";
 import { getNetlist } from "../editor/netlist";
 
@@ -14,8 +15,10 @@ export const OHMS_MAX = 40e6;
  * resistência interna delas e o multímetro injeta a própria corrente de teste.
  * Retorna Infinity quando não há caminho (OL).
  */
-export function measureOhms(doc: Doc, pressed: Set<string>, red: string, black: string): number {
+export function measureOhms(original: Doc, pressed: Set<string>, red: string, black: string): number {
   if (red === black) return 0;
+  // Blocos (placas prontas) viram as peças de dentro, como na simulação.
+  const doc = flattenDoc(original);
   const netlist = getNetlist(doc);
   const built = buildCircuit(doc, netlist, {}, new Set(), pressed);
   const off = (el: SimElement): SimElement | null => {

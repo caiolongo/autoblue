@@ -877,3 +877,59 @@ fn pnp_e_pmos_como_chave_do_lado_positivo() {
     assert!(solve(&pmos(0.0)).unwrap().voltages[3] > 8.5);
     assert!(solve(&pmos(9.0)).unwrap().voltages[3] < 0.1);
 }
+
+/// LED azul: ~3,0 V a 20 mA. Is tão pequeno que o ponto de operação passa de XMAX.
+fn blue_led(id: &str, a: usize, k: usize) -> Element {
+    let n = 2.0;
+    let is = 0.02 / ((3.0 - 0.02 * 10.0) / (n * VT)).exp();
+    Element::Diode {
+        id: id.into(),
+        a,
+        k,
+        is,
+        n,
+        rs: 10.0,
+    }
+}
+
+#[test]
+fn led_azul_com_resistor() {
+    // 9 V → 330 Ω → LED azul → GND: I ≈ (9 − ~3) / 330 ≈ 18 mA.
+    let s = solve(&circuit(
+        3,
+        vec![
+            src("bt", 1, 0, 9.0, 1.5),
+            r("r", 1, 2, 330.0),
+            blue_led("d", 2, 0),
+        ],
+    ))
+    .unwrap();
+    assert!(s.converged);
+    let i = get(&s, "d").currents[0];
+    assert!((0.016..0.020).contains(&i), "corrente {i}");
+    let vf = s.voltages[2];
+    assert!((2.8..3.2).contains(&vf), "vf {vf}");
+}
+
+#[test]
+fn led_azul_direto_na_fonte_de_bancada() {
+    // 24 V direto no LED, sem resistor: só Rs = 10 Ω segura, I ≈ (24 − ~3,3) / 10 ≈ 2 A.
+    let s = solve(&circuit(
+        2,
+        vec![
+            Element::Supply {
+                id: "ps".into(),
+                p: 1,
+                n: 0,
+                v: 24.0,
+                r: 0.01,
+                ilim: 5.0,
+            },
+            blue_led("d", 1, 0),
+        ],
+    ))
+    .unwrap();
+    assert!(s.converged);
+    let i = get(&s, "d").currents[0];
+    assert!(i > 1.5, "corrente {i}");
+}
