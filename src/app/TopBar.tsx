@@ -1,5 +1,6 @@
 import { useDoc } from "../features/editor/store";
 import { fileName, newProject, openProject, saveProject } from "../features/project/file";
+import { systemById } from "../features/systems";
 import { MODES, useMode, VIEWS } from "./mode";
 import { useTheme } from "./theme";
 
@@ -10,6 +11,7 @@ export function TopBar() {
   const { pref, cycle } = useTheme();
   const filePath = useDoc((s) => s.filePath);
   const dirty = useDoc((s) => s.dirty);
+  const system = systemById(useDoc((s) => s.doc.system));
 
   return (
     <header className="panel topbar">
@@ -20,7 +22,7 @@ export function TopBar() {
         </svg>
         <span>AutoBlue</span>
         <span className="project mono" title={filePath ?? undefined}>
-          {fileName(filePath)}
+          {!filePath && system ? system.name : fileName(filePath)}
           {dirty && <i className="dirty" title="Alterações não salvas" />}
         </span>
       </div>

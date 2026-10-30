@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Point } from "../../lib/geometry";
+import type { Point, Rect } from "../../lib/geometry";
 
 /** Unidade do mundo: 1 célula da grade = 20 unidades = 0,1" (passo da protoboard). */
 export const GRID = 20;
@@ -20,7 +20,11 @@ interface ViewportState {
   zoomAt: (factor: number, sx: number, sy: number) => void;
   setCursor: (p: Point | null) => void;
   reset: () => void;
+  /** Enquadra `area` numa tela de `w` × `h` pixels, sem passar do zoom padrão. */
+  fit: (area: Rect, w: number, h: number) => void;
 }
+
+const FIT_MARGIN = 56;
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
@@ -39,6 +43,10 @@ export const useViewport = create<ViewportState>((set) => ({
     }),
   setCursor: (cursor) => set({ cursor }),
   reset: () => set({ x: -200, y: -160, zoom: DEFAULT_ZOOM }),
+  fit: (area, w, h) => {
+    const zoom = clamp(Math.min((w - 2 * FIT_MARGIN) / area.w, (h - 2 * FIT_MARGIN) / area.h), MIN_ZOOM, DEFAULT_ZOOM);
+    set({ zoom, x: area.x + area.w / 2 - w / 2 / zoom, y: area.y + area.h / 2 - h / 2 / zoom });
+  },
 }));
 
 export function snap(v: number): number {

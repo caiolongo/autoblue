@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <title>AutoBlue</title>
+  <defs>
+    <clipPath id="sheet"><path d="M144 88H724L936 300V880A56 56 0 0 1 880 936H144A56 56 0 0 1 88 880V144A56 56 0 0 1 144 88Z"/></clipPath>
+  </defs>
+  <g transform="translate(512 512) scale(1.06) translate(-512 -512)">
+  <path fill="#104BFF" d="M144 88H724L936 300V880A56 56 0 0 1 880 936H144A56 56 0 0 1 88 880V144A56 56 0 0 1 144 88Z"/>
+  <path clip-path="url(#sheet)" fill="none" stroke="#FFFFFF" stroke-opacity=".28" stroke-width="6" d="M194 88V936M300 88V936M406 88V936M512 88V936M618 88V936M724 88V936M830 88V936M88 194H936M88 300H936M88 406H936M88 512H936M88 618H936M88 724H936M88 830H936"/>
+  <path fill="#ABC0FF" d="M724 88L936 300H760A36 36 0 0 1 724 264Z"/>
+  <path fill="none" stroke="#FFFFFF" stroke-width="60" stroke-linecap="round" stroke-linejoin="round" d="M194 560H300L335 454L406 666L476 454L548 666L618 454L689 666L724 560H830"/>
+  <circle cx="194" cy="560" r="62" fill="#FFFFFF"/>
+  <circle cx="830" cy="560" r="62" fill="#FFFFFF"/>
+  <circle cx="194" cy="560" r="24" fill="#104BFF"/>
+  <circle cx="830" cy="560" r="24" fill="#104BFF"/>
+  </g>
+</svg>

@@ -1,12 +1,12 @@
 import { produce } from "immer";
-import { addPart, addWire, emptyDoc, partBounds, pinsOf, type BlockDef, type Doc } from "../editor/doc";
+import { addWire, emptyDoc, partBounds, pinsOf, type BlockDef, type Doc } from "../editor/doc";
 import { route } from "../editor/wires";
-import { PARTS, type Props } from "../library/parts";
+import { defaultProps, PARTS, type Props } from "../library/parts";
 
 const G = 20;
 
 /** [ref, tipo, x, y (em passos de 0,1"), ajustes, rotação] */
-type PartSpec = [string, string, number, number, Props?, number?];
+export type PartSpec = [string, string, number, number, Props?, number?];
 
 export interface BoardSpec {
   id: string;
@@ -202,26 +202,32 @@ export const BOARD_SPECS: BoardSpec[] = [
   },
 ];
 
+/**
+ * Coloca as peças. O id vem do designador e é sempre o mesmo: o que fica gravado no arquivo
+ * apontando para uma peça de dentro da placa (programa, dano) continua valendo ao reabrir o app.
+ */
+export function placeParts(parts: PartSpec[]): Doc {
+  const doc = emptyDoc();
+  for (const [ref, kind, gx, gy, props, rot] of parts) {
+    const id = `p_${ref}`;
+    doc.parts[id] = { id, kind, ref, x: gx * G, y: gy * G, rot: rot ?? 0, flip: false, props: { ...defaultProps(PARTS[kind]), ...props } };
+  }
+  return doc;
+}
+
+/** Acha um pino escrito como "REF.PINO". */
+export function pinAt(doc: Doc, pinRef: string, owner: string) {
+  const [ref, pin] = [pinRef.slice(0, pinRef.indexOf(".")), pinRef.slice(pinRef.indexOf(".") + 1)];
+  const part = doc.parts[`p_${ref}`];
+  const hit = part && pinsOf(part).find((x) => x.pin.name === pin);
+  if (!hit) throw new Error(`${owner}: pino ${pinRef} não existe`);
+  return { part, pin: hit.pin, pos: hit.pos };
+}
+
 /** Monta o circuito de dentro de uma placa: peças, fios roteados e pinos externos. */
 export function buildBoard(spec: BoardSpec): BlockDef {
-  let doc: Doc = emptyDoc();
-  const byRef: Record<string, string> = {};
-  for (const [ref, kind, gx, gy, props, rot] of spec.parts) {
-    let id: string;
-    [doc, id] = addPart(doc, kind, { x: gx * G, y: gy * G }, rot ?? 0);
-    doc = produce(doc, (d) => {
-      d.parts[id].ref = ref;
-      Object.assign(d.parts[id].props, props ?? {});
-    });
-    byRef[ref] = id;
-  }
-  const at = (pinRef: string) => {
-    const [ref, pin] = [pinRef.slice(0, pinRef.indexOf(".")), pinRef.slice(pinRef.indexOf(".") + 1)];
-    const part = doc.parts[byRef[ref]];
-    const hit = part && pinsOf(part).find((x) => x.pin.name === pin);
-    if (!hit) throw new Error(`${spec.id}: pino ${pinRef} não existe`);
-    return { part, pin: hit.pin, pos: hit.pos };
-  };
+  let doc = placeParts(spec.parts);
+  const at = (pinRef: string) => pinAt(doc, pinRef, spec.id);
 
   for (const net of spec.nets) {
     for (let i = 1; i < net.length; i++) {
@@ -241,11 +247,9 @@ export function buildBoard(spec: BoardSpec): BlockDef {
   for (const [name, target] of spec.ports) {
     const { pin, pos } = at(target);
     const rot = pin.y > 0 ? 1 : pin.y < 0 ? 3 : pin.x < 0 ? 2 : 0;
-    let id: string;
-    [doc, id] = addPart(doc, "port", pos, rot);
+    const id = `p_P_${name}`;
     doc = produce(doc, (d) => {
-      d.parts[id].props.name = name;
-      d.parts[id].ref = `P_${name}`;
+      d.parts[id] = { id, kind: "port", ref: `P_${name}`, x: pos.x, y: pos.y, rot, flip: false, props: { name } };
     });
     pins.push({ name, port: id });
   }

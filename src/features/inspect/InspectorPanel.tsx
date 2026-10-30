@@ -8,6 +8,8 @@ import { useDoc, useEditor } from "../editor/store";
 import { PARTS, type PropDef, type PropValue } from "../library/parts";
 import { specOf } from "../../mcu/runtime";
 import { isBlock } from "../blocks/blocks";
+import { systemById } from "../systems";
+import { SystemGuide } from "../systems/SystemGuide";
 import { BlockPanel } from "./BlockPanel";
 import { EnergyOverview, PartLive, WireLive } from "./LivePanel";
 import { McuPanel } from "./McuPanel";
@@ -111,6 +113,7 @@ function PartInspector({ part, netlist }: { part: Part; netlist: Netlist }) {
   const def = PARTS[part.kind];
   const markings = Object.values(def.markings(part.props));
   const pins = def.pins(part.props);
+  const system = systemById(useDoc((s) => s.doc.system));
 
   const setProp = (k: string, v: PropValue) => {
     const { doc, commit } = useDoc.getState();
@@ -123,6 +126,11 @@ function PartInspector({ part, netlist }: { part: Part; netlist: Netlist }) {
 
   return (
     <>
+      {system && (
+        <button className="link guide-back" onClick={() => useDoc.getState().select([])}>
+          ← Guia: {system.name}
+        </button>
+      )}
       <header className="insp-head">
         <span className="ref-chip mono">{part.ref}</span>
         <h2>{def.name}</h2>
@@ -232,7 +240,7 @@ function ProjectInspector({ netlist }: { netlist: Netlist }) {
 
   return (
     <>
-      <p className="insp-summary">{HINT[mode]}</p>
+      {doc.system ? <SystemGuide /> : <p className="insp-summary">{HINT[mode]}</p>}
       <ShortWarnings netlist={netlist} />
       <EnergyOverview />
       {nParts > 0 && (

@@ -718,10 +718,12 @@ RULES.ne555 = (part, r, ctx) => {
     high ? "DIS aberto: o capacitor de tempo pode carregar." : "DIS ligado ao GND por dentro: o capacitor de tempo descarrega por ele.",
   );
   if (at("RESET") < 0.7) {
-    v.status = "warn";
+    // Comandar o RESET é um uso normal do pino; o problema é deixá-lo solto.
+    const loose = ctx.lonely.has("RESET");
+    if (loose) v.status = "warn";
     v.notes.push({
-      level: "warn",
-      text: ctx.lonely.has("RESET")
+      level: loose ? "warn" : "info",
+      text: loose
         ? "RESET solto (lê 0): o 555 fica travado com a saída em 0. Ligue o RESET no VCC."
         : "RESET em 0: o 555 fica travado com a saída em 0.",
     });

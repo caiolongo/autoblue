@@ -33,6 +33,8 @@ export function App() {
             Arraste uma peça da biblioteca para cá, ou clique nela e depois no canvas.
             <br />
             Ligue fios clicando num pino. Pode ligar qualquer coisa em qualquer lugar.
+            <br />
+            Para estudar um circuito pronto, abra a aba Sistemas da biblioteca.
           </div>
         )}
         </>}

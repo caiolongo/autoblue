@@ -46,6 +46,8 @@ export interface Doc {
   parts: Record<string, Part>;
   wires: Record<string, Wire>;
   blocks?: Record<string, BlockDef>;
+  /** Sistema pronto de onde este circuito veio: mostra o guia de estudo no inspetor. */
+  system?: string;
   /** Só no documento "achatado" da simulação: ligações extras entre pontos (pino do bloco ↔ porta de dentro). */
   links?: [Point, Point][];
 }

@@ -12,7 +12,7 @@ const FILTERS = [{ name: "Projeto AutoBlue", extensions: ["abp"] }];
 
 export function serialize(doc: Doc): string {
   return JSON.stringify(
-    { format: FORMAT, version: VERSION, parts: Object.values(doc.parts), wires: Object.values(doc.wires), blocks: Object.values(doc.blocks ?? {}) },
+    { format: FORMAT, version: VERSION, system: doc.system, parts: Object.values(doc.parts), wires: Object.values(doc.wires), blocks: Object.values(doc.blocks ?? {}) },
     null,
     2,
   );
@@ -26,6 +26,7 @@ export function deserialize(text: string): Doc {
   const raw = JSON.parse(text);
   if (raw?.format !== FORMAT) throw new Error("Este arquivo não é um projeto AutoBlue.");
   const doc = emptyDoc();
+  if (typeof raw.system === "string") doc.system = raw.system;
   // Blocos primeiro: as peças podem ser instâncias deles.
   for (const b of raw.blocks ?? []) {
     if (typeof b?.id !== "string" || !Array.isArray(b.pins)) continue;
@@ -65,7 +66,7 @@ async function requireApp(): Promise<boolean> {
   return false;
 }
 
-async function confirmDiscard(): Promise<boolean> {
+export async function confirmDiscard(): Promise<boolean> {
   if (!useDoc.getState().dirty) return true;
   return ask("Há alterações não salvas. Descartar?", {
     title: "AutoBlue",

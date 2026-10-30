@@ -933,3 +933,85 @@ fn led_azul_direto_na_fonte_de_bancada() {
     let i = get(&s, "d").currents[0];
     assert!(i > 1.5, "corrente {i}");
 }
+
+#[test]
+fn multivibrador_astavel_passa_pela_virada_regenerativa() {
+    // Dois NPN com realimentação cruzada: sem capacitâncias nos transistores, a raiz estável
+    // some na virada e o Newton sozinho não sai do lugar.
+    let npn = |id: &str, c, b, is, bf| Element::Npn {
+        id: id.into(),
+        c,
+        b,
+        e: 0,
+        is,
+        bf,
+        br: 1.0,
+    };
+    let cap = |id: &str, a, b| Element::Capacitor {
+        id: id.into(),
+        a,
+        b,
+        c: 10e-6,
+    };
+    let c = circuit(
+        8,
+        vec![
+            src("v", 1, 0, 5.0, 0.05),
+            r("r1", 1, 2, 330.0),
+            red_led("d1", 2, 3),
+            r("r2", 1, 4, 68e3),
+            r("r3", 1, 7, 82e3),
+            r("r4", 1, 5, 330.0),
+            red_led("d2", 5, 6),
+            cap("c1", 3, 7),
+            cap("c2", 4, 6),
+            npn("q1", 3, 4, 6.7e-15, 250.0),
+            npn("q2", 6, 7, 1.8e-14, 300.0),
+        ],
+    );
+    let (mut state, mut guess) = (HashMap::new(), vec![]);
+    let (mut low, mut high) = (0.0f64, 0.0f64);
+    for f in 0..180 {
+        let out = transient(&TransientRequest {
+            circuit: c.clone(),
+            state,
+            duration: 1.0 / 60.0,
+            steps: 60,
+            guess,
+            probes: vec![3],
+            t0: f as f64 / 60.0,
+        })
+        .unwrap();
+        assert!(out.solution.converged, "parou no quadro {f}");
+        let v = out.solution.voltages[3];
+        (low, high) = (low.max(0.5 - v), high.max(v - 3.0));
+        state = out.state;
+        guess = out.solution.voltages;
+    }
+    assert!(low > 0.0 && high > 0.0, "o coletor não alternou");
+}
+
+#[test]
+fn no_entre_dois_mosfets_desligados_em_serie_tem_tensao_definida() {
+    // NAND CMOS com as duas entradas em 0: nada além da fuga define o nó do meio.
+    let nmos = |id: &str, d, g, s| Element::Nmos {
+        id: id.into(),
+        d,
+        g,
+        s,
+        k: 0.1,
+        vth: 2.1,
+    };
+    let c = circuit(
+        4,
+        vec![
+            src("v", 1, 0, 5.0, 0.05),
+            r("carga", 1, 2, 1000.0),
+            nmos("q1", 2, 0, 3),
+            nmos("q2", 3, 0, 0),
+        ],
+    );
+    let s = solve(&c).unwrap();
+    assert!(s.converged);
+    close(s.voltages[3], 2.5, 0.1);
+}

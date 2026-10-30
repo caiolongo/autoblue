@@ -24,6 +24,10 @@ pub const VT: f64 = 0.025852;
 /// Condutância mínima de cada nó para a referência: mantém nós soltos definidos.
 const GMIN: f64 = 1e-12;
 const MAX_ITER: usize = 200;
+/// Último recurso do transiente, do menor para o maior (em S). Numa virada regenerativa, dois
+/// transistores sem capacitâncias não têm solução contínua: a raiz estável some e o circuito
+/// real pula para outro estado. Capacitância parasita nos nós dá tempo finito a esse pulo.
+const PARASITIC: [f64; 4] = [1e-3, 1e-2, 1e-1, 1.0];
 /// Acima disso a exponencial dos transistores vira reta (evita overflow no Newton).
 const XMAX: f64 = 40.0;
 /// Nos diodos a reta começa nesta corrente (A), não num expoente fixo: um LED azul
@@ -33,6 +37,8 @@ const I_LIN: f64 = 100.0;
 const MAX_STEP: f64 = 2.0;
 /// Um indutor em DC é um fio: 1 mΩ.
 const INDUCTOR_DC_G: f64 = 1e3;
+/// Condutância do canal de um MOSFET desligado: fuga de ~10 nA a 10 V, na ordem dos datasheets.
+const G_OFF: f64 = 1e-9;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Circuit {
@@ -426,6 +432,8 @@ fn nmos_eval(vd: f64, vg: f64, vs: f64, k: f64, vth: f64) -> Eval3 {
         let core = vov * vov / 2.0;
         (k * core * cl, k * vov * cl, k * core * LAMBDA)
     };
+    // Sem essa fuga, o nó entre dois MOSFETs desligados em série não teria tensão definida.
+    let (id, did_ds) = (id + G_OFF * vds, did_ds + G_OFF);
     let gm = did_ov * dvov;
     // Corrente entrando pelo dreno efetivo em função de (v_dd, v_g, v_ss).
     let r = [did_ds, gm, -(gm + did_ds)];
@@ -894,6 +902,12 @@ fn update_modes(p: &Prepared, s: &mut State) -> bool {
 /// iteração para a outra, é sinal de que o Newton está pulando de um lado ao outro
 /// de uma transição brusca; o limite cai pela metade até ele acertar o meio.
 fn newton(p: &Prepared, s: &mut State, scale: f64, gmin: f64, an: &Analysis) -> Option<usize> {
+    newton_anchored(p, s, scale, gmin, 0.0, &[], an)
+}
+
+/// Newton com cada nó preso à tensão `start` por uma condutância `anchor`: é o que um capacitor
+/// parasita em cada nó faria em um passo de Euler implícito (C = anchor × dt).
+fn newton_anchored(p: &Prepared, s: &mut State, scale: f64, gmin: f64, anchor: f64, start: &[f64], an: &Analysis) -> Option<usize> {
     let m = p.n - 1;
     if m == 0 {
         return Some(0);
@@ -903,7 +917,10 @@ fn newton(p: &Prepared, s: &mut State, scale: f64, gmin: f64, an: &Analysis) -> 
     for it in 1..=MAX_ITER {
         let mut sys = linalg::System::new(m);
         for node in 1..p.n {
-            sys.add_g(node, node, GMIN + gmin);
+            sys.add_g(node, node, GMIN + gmin + anchor);
+            if anchor > 0.0 {
+                sys.add_i(node, anchor * start[node]);
+            }
         }
         for &t in &p.ties {
             sys.add_g(t, t, 1.0);
@@ -1140,7 +1157,8 @@ fn commit_state(
     }
 }
 
-/// Avança um passo. Se o Newton não convergir, divide o passo em 4, até 3 vezes.
+/// Avança um passo. Se o Newton não convergir, divide o passo em 4, até 3 vezes; no menor
+/// passo, acrescenta capacitância parasita nos nós (viradas regenerativas chegam até aqui).
 /// Retorna o estado de antes do último subpasso aceito e o tamanho dele (para o relatório).
 fn advance(
     p: &Prepared,
@@ -1157,7 +1175,14 @@ fn advance(
     }
     (s.v, s.cc) = saved;
     if depth >= 3 {
-        return None;
+        let an = Analysis::Tran { dt, prev: &prev };
+        let start = s.v.clone();
+        let it = PARASITIC.iter().find_map(|&g| {
+            s.v.clone_from(&start);
+            newton_anchored(p, s, 1.0, 0.0, g, &start, &an)
+        })?;
+        commit_state(p, s, dt, &prev, state);
+        return Some((prev, dt, it));
     }
     let mut last = None;
     let mut total = 0;

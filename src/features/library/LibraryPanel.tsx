@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { HintsEnabled } from "../../ui/tooltipStore";
 import { PART_MIME } from "../editor/Canvas";
 import { builtinBlocks, registerBlocks } from "../blocks/blocks";
 import { emptyDoc } from "../editor/doc";
 import { useDoc, useEditor } from "../editor/store";
+import { SystemList } from "../systems/SystemList";
 
 registerBlocks(emptyDoc());
 import { defaultProps, PART_LIST, PARTS, type PartDef } from "./parts";
@@ -27,6 +29,7 @@ function Preview({ def }: { def: PartDef }) {
 }
 
 export function LibraryPanel() {
+  const [tab, setTab] = useState<"pecas" | "sistemas">("pecas");
   const placing = useEditor((s) => s.placing);
   const setPlacing = useEditor((s) => s.setPlacing);
   const blocks = useDoc((s) => s.doc.blocks);
@@ -39,8 +42,18 @@ export function LibraryPanel() {
 
   return (
     <aside className="panel" style={{ gridArea: "left" }}>
-      <div className="panel-head">Biblioteca</div>
+      <div className="panel-head">
+        <nav className="segmented small" aria-label="Biblioteca">
+          <button aria-pressed={tab === "pecas"} onClick={() => setTab("pecas")}>
+            Peças
+          </button>
+          <button aria-pressed={tab === "sistemas"} onClick={() => setTab("sistemas")}>
+            Sistemas
+          </button>
+        </nav>
+      </div>
       <div className="panel-body library">
+        {tab === "sistemas" ? <SystemList /> : <>
         {[
           { title: "Placas prontas", list: boards },
           { title: "Meus blocos", list: mine },
@@ -113,6 +126,7 @@ export function LibraryPanel() {
             </ul>
           </section>
         ))}
+        </>}
       </div>
     </aside>
   );
